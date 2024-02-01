@@ -6,3 +6,7 @@ you need to save a copy of it to your own Google Drive.
 
 ### January 25
 - [Classification via Linear Regression Demo](https://colab.research.google.com/github/cs349w24/notebooks/blob/main/classification_demo.ipynb)
+
+### February 1
+- [Regularization Part 1](https://colab.research.google.com/github/cs349w24/notebooks/blob/main/regularization1.ipynb)
+- [Regularization Part 2](https://colab.research.google.com/github/cs349w24/notebooks/blob/main/regularization2.ipynb)

@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 
 import matplotlib.pyplot as plt
-from visualize import plot_decision_regions
+from backprop_demo.visualize import plot_decision_regions
 
 # Some inspiration taken from:
 # https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
@@ -98,6 +98,50 @@ class MLP:
                 print(i + 1, np.mean(loss))
 
 
+def experiment(**kwargs):
+
+    np.random.seed(kwargs["seed"])
+
+    # xor dataset
+    X = np.array([[1, 1], [1, 0], [0, 1], [0, 0]],
+                 dtype=float)
+    y = np.array([[0], [1], [1], [0]], dtype=float)
+
+    if kwargs["bonus"]:
+        X_bonus = np.array([[0.25, 0.75], [0.5, 0.5], [0.75, 0.25]])
+        y_bonus = np.array([[0], [1], [0]])
+        X = np.concatenate([X, X_bonus], axis=0)
+        y = np.concatenate([y, y_bonus], axis=0)
+
+    mlp = MLP(learning_rate=kwargs["lr"],
+              init_std=kwargs["init_std"],
+              n_hidden_nodes=kwargs["n_hidden_nodes"])
+
+    if kwargs["plot_before"]:
+        plot_decision_regions(X, y, mlp)
+        plt.show()
+
+    mlp.fit(X, y, quiet=not kwargs["verbose"], steps=kwargs["n_iters"])
+
+    print("{:.0f}% accuracy".format(
+        100 * np.mean((mlp.predict(X) > 0.5) == y)))
+    print(np.round(mlp.W1, 2))
+    print(np.round(mlp.W2, 2))
+
+    # plot the new decision boundaries
+    plot_decision_regions(X, y, mlp)
+
+    if kwargs["save"]:
+        fn = []
+        for key in ["seed", "lr", "init_std", "bonus", "n_hidden_nodes", "n_iters"]:
+            fn.append(f"{key}{getattr(args, key)}")
+        fn = "-".join(fn)
+        plt.savefig(f"plots/{fn}.png")
+    else:
+        plt.show()
+    plt.close('all')
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=1)
@@ -110,50 +154,10 @@ def main():
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--save", action="store_true")
     args = parser.parse_args()
-
-    np.random.seed(args.seed)
-
-    # xor dataset
-    X = np.array([[1, 1], [1, 0], [0, 1], [0, 0]],
-                 dtype=float)
-    y = np.array([[0], [1], [1], [0]], dtype=float)
-
-    if args.bonus:
-        X_bonus = np.array([[0.25, 0.75], [0.5, 0.5], [0.75, 0.25]])
-        y_bonus = np.array([[0], [1], [0]])
-        X = np.concatenate([X, X_bonus], axis=0)
-        y = np.concatenate([y, y_bonus], axis=0)
-
-    mlp = MLP(learning_rate=args.lr,
-              init_std=args.init_std,
-              n_hidden_nodes=args.n_hidden_nodes)
-
-    if args.plot_before:
-        plot_decision_regions(X, y, mlp)
-        plt.show()
-
-    mlp.fit(X, y, quiet=not args.verbose, steps=args.n_iters)
-
-    print("{:.0f}% accuracy".format(
-        100 * np.mean((mlp.predict(X) > 0.5) == y)))
-    print(np.round(mlp.W1, 2))
-    print(np.round(mlp.W2, 2))
-
-    # plot the new decision boundaries
-    plot_decision_regions(X, y, mlp)
-
-    if args.save:
-        fn = []
-        for key in ["seed", "lr", "init_std", "bonus", "n_hidden_nodes", "n_iters"]:
-            fn.append(f"{key}{getattr(args, key)}")
-        fn = "-".join(fn)
-        plt.savefig(f"plots/{fn}.png")
-    else:
-        plt.show()
-    plt.close('all')
+    experiment(**args.__dict__)
 
 
-# python backprop.py --bonus --verbose --n_iter 10000
-# python backprop.py --bonus --verbose --n_iter 20000
+# python -m backprop_demo.backprop --bonus --verbose --n_iter 10000
+# python -m backprop_demo.backprop --bonus --verbose --n_iter 20000
 if __name__ == "__main__":
     main()
